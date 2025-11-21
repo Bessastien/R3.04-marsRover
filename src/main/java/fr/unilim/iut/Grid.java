@@ -40,4 +40,29 @@ public class Grid {
             }
         }
     }
+
+    public Position normalise(Position potentialRoverPosition) {
+        int x = potentialRoverPosition.getX();
+        int y = potentialRoverPosition.getY();
+
+        // Wrapping: si on dépasse les bords, on revient de l'autre côté
+        if (x < 0) {
+            x = GRID_SIZE - 1;
+        } else if (x >= GRID_SIZE) {
+            x = 0;
+        }
+
+        if (y < 0) {
+            y = GRID_SIZE - 1;
+        } else if (y >= GRID_SIZE) {
+            y = 0;
+        }
+
+        return new Position(x, y);
+    }
+
+    public boolean hasObstacle(Position position) {
+        Cell cell = getCell(position);
+        return cell != null && cell.containsObstacle();
+    }
 }

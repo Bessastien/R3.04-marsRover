@@ -5,17 +5,25 @@ import java.util.List;
 public class Rover {
     private Position position;
     private Directions direction;
+    private Grid grid;
+    private String obstacleMessage = null;
 
-    public Rover(Position position, Directions direction) {
+    public Rover(Position position, Directions direction, Grid grid) {
         this.position = position;
         this.direction = direction;
+        this.grid = grid;
+    }
+
+    public Rover(Position position, Directions direction) {
+        this(position, direction, new Grid());
     }
 
     public Rover() {
-        this(new Position(0,0), Directions.NORTH);
+        this(new Position(0,0), Directions.NORTH, new Grid());
     }
 
     public void move(List<Character> instructions) {
+        obstacleMessage = null;
         for (Character instruction : instructions) {
             switch (instruction) {
                 case 'L':
@@ -25,10 +33,14 @@ public class Rover {
                     turnRight();
                     break;
                 case 'F':
-                    moveForward();
+                    if (!moveForward()) {
+                        return; // Arrêt de la séquence si obstacle rencontré
+                    }
                     break;
                 case 'B':
-                    moveBackward();
+                    if (!moveBackward()) {
+                        return; // Arrêt de la séquence si obstacle rencontré
+                    }
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid instruction: " + instruction);
@@ -70,46 +82,83 @@ public class Rover {
         }
     }
 
-    public void moveForward() {
+    public boolean moveForward() {
+        Position newPosition;
         switch (direction) {
             case NORTH:
-                position = new Position(position.getX(), position.getY() + 1);
+                newPosition = new Position(position.getX(), position.getY() + 1);
                 break;
             case WEST:
-                position = new Position(position.getX() - 1, position.getY());
+                newPosition = new Position(position.getX() - 1, position.getY());
                 break;
             case SOUTH:
-                position = new Position(position.getX(), position.getY() - 1);
+                newPosition = new Position(position.getX(), position.getY() - 1);
                 break;
             case EAST:
-                position = new Position(position.getX() + 1, position.getY());
+                newPosition = new Position(position.getX() + 1, position.getY());
                 break;
+            default:
+                return false;
         }
+
+        // Normaliser la position (wrapping)
+        newPosition = grid.normalise(newPosition);
+
+        // Vérifier s'il y a un obstacle
+        if (grid.hasObstacle(newPosition)) {
+            obstacleMessage = "Obstacle detected at position (" + newPosition.getX() + ", " + newPosition.getY() + ")";
+            return false;
+        }
+
+        position = newPosition;
+        return true;
     }
 
-    public void moveBackward() {
+    public boolean moveBackward() {
+        Position newPosition;
         switch (direction) {
             case NORTH:
-                position = new Position(position.getX(), position.getY() - 1);
+                newPosition = new Position(position.getX(), position.getY() - 1);
                 break;
             case WEST:
-                position = new Position(position.getX() + 1, position.getY());
+                newPosition = new Position(position.getX() + 1, position.getY());
                 break;
             case SOUTH:
-                position = new Position(position.getX(), position.getY() + 1);
+                newPosition = new Position(position.getX(), position.getY() + 1);
                 break;
             case EAST:
-                position = new Position(position.getX() - 1, position.getY());
+                newPosition = new Position(position.getX() - 1, position.getY());
                 break;
+            default:
+                return false;
         }
+
+        // Normaliser la position (wrapping)
+        newPosition = grid.normalise(newPosition);
+
+        // Vérifier s'il y a un obstacle
+        if (grid.hasObstacle(newPosition)) {
+            obstacleMessage = "Obstacle detected at position (" + newPosition.getX() + ", " + newPosition.getY() + ")";
+            return false;
+        }
+
+        position = newPosition;
+        return true;
     }
-
-
 
     public Position getPosition() {
         return position;
     }
+
     public Directions getDirection() {
         return direction;
+    }
+
+    public String getObstacleMessage() {
+        return obstacleMessage;
+    }
+
+    public Grid getGrid() {
+        return grid;
     }
 }
